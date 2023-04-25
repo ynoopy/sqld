@@ -1,0 +1,77 @@
+import RPi.GPIO as GPIO
+
+import time
+
+
+
+led_r = 13 
+
+led_g = 19
+
+led_b = 26
+
+
+
+GPIO.setmode(GPIO.BCM)
+
+GPIO.setwarnings(False)
+
+GPIO.setup(led_r, GPIO.OUT)
+
+GPIO.setup(led_g, GPIO.OUT)
+
+GPIO.setup(led_b, GPIO.OUT)
+
+
+
+def led_on(rgb):
+
+    GPIO.output(led_r, GPIO.LOW)
+
+    GPIO.output(led_g, GPIO.LOW)
+
+    GPIO.output(led_b, GPIO.LOW)
+
+    time.sleep(0.2)
+
+    if rgb == "R":
+
+        GPIO.output(led_r, GPIO.HIGH)
+
+    if rgb == "G":
+
+        GPIO.output(led_g, GPIO.HIGH)
+
+    if rgb == "B":
+
+        GPIO.output(led_b, GPIO.HIGH)
+
+
+try:
+
+    while True :
+
+        led_on('R')
+
+        time.sleep(3)
+
+        led_on('G')
+
+        time.sleep(3)
+
+        led_on('B')
+
+        time.sleep(3)
+
+
+
+except KeyboardInterrupt:
+
+    print("Terminated by Keyboard")
+
+    
+
+finally:
+
+    GPIO.cleanup()
+
