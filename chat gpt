@@ -1,0 +1,94 @@
+import RPi.GPIO as GPIO
+import time
+import picamera
+
+GPIO.setmode(GPIO.BCM)
+
+# HC-SR04 초음파 센서와 연결된 GPIO 핀 번호
+TRIG = 23
+ECHO = 24
+
+# 서보 모터와 연결된 GPIO 핀 번호
+SERVO = 18
+
+# 초음파 속도 (cm/s)
+SPEED_OF_SOUND = 34300
+
+# 초음파를 보내고, 응답이 돌아오는 시간을 이용하여 거리를 계산하는 함수
+def get_distance():
+    # Trig 핀을 LOW로 설정
+    GPIO.output(TRIG, False)
+    time.sleep(0.5)
+
+    # Trig 핀을 HIGH로 설정하여 초음파를 보냄
+    GPIO.output(TRIG, True)
+    time.sleep(0.00001)
+    GPIO.output(TRIG, False)
+
+    # Echo 핀에서 초음파의 응답을 받음
+    pulse_start = time.time()
+    pulse_end = time.time()
+
+    while GPIO.input(ECHO) == 0:
+        pulse_start = time.time()
+
+    while GPIO.input(ECHO) == 1:
+        pulse_end = time.time()
+
+    pulse_duration = pulse_end - pulse_start
+    distance = (pulse_duration * SPEED_OF_SOUND) / 2
+
+    return distance
+
+# 서보 모터를 제어하여 일정 각도로 회전시키는 함수
+def rotate_servo(angle):
+    # duty ratio 계산 (2.5% ~ 12.5%)
+    duty = (angle / 18) + 2.5
+
+    # duty ratio 설정 및 대기
+    GPIO.output(SERVO, True)
+    pwm.ChangeDutyCycle(duty)
+    time.sleep(1)
+    GPIO.output(SERVO, False)
+    pwm.ChangeDutyCycle(0)
+
+if __name__ == '__main__':
+    # GPIO 설정
+    GPIO.setup(TRIG, GPIO.OUT)
+    GPIO.setup(ECHO, GPIO.IN)
+    GPIO.setup(SERVO, GPIO.OUT)
+
+    # 서보 모터 PWM 설정
+    pwm = GPIO.PWM(SERVO, 50)
+    pwm.start(0)
+
+    # 카메라 초기화
+    camera = picamera.PiCamera()
+    camera.resolution = (640, 480)
+    camera.rotation = 180
+
+    try:
+        while True:
+            distance = get_distance()
+            print("Distance: %.1f cm" % distance)
+
+            # 일정 거리 이하인 경우
+            if distance <= 10:
+                # 서보 모터를 90도로 회전
+                rotate_servo(90)
+
+                # 1초 대기 후, 카메라로 사진 촬영
+                time.sleep(1)
+                camera.capture('/home/pi/snapshot.jpg')
+
+                # 서보 모터를 다시 0도로 회전
+                rotate_servo(0)
+
+            time.sleep(0.5)
+
+    except KeyboardInterrupt:
+        pass
+
+    finally:
+        # 리소스 정리
+        GPIO.cleanup()
