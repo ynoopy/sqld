@@ -1,0 +1,23 @@
+import firebase_admin
+from firebase_admin import credentials
+
+# Firebase SDK 구성 스니펫에서 얻은 경로를 입력합니다.
+cred = credentials.Certificate('path/to/serviceAccountKey.json')
+firebase_admin.initialize_app(cred)
+
+
+
+
+
+
+
+from firebase_admin import db
+
+# 실시간 데이터베이스에서 데이터 읽기
+ref = db.reference('경로')
+data = ref.get()
+
+# Firestore에서 데이터 읽기
+from google.cloud import firestore
+db = firestore.Client()
+doc_ref = db.collection('컬렉션').
